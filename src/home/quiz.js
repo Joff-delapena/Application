@@ -3,13 +3,20 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { MaterialIcons } from '@expo/vector-icons';
 
 const QuizScreen = ({ navigation, route }) => {
+  // State to track user's selected answers
   const [answers, setAnswers] = useState({});
+  // State to show feedback for the current answer
   const [showFeedback, setShowFeedback] = useState('');
+  // State to track the user's score
   const [score, setScore] = useState(0);
+  // State to track the index of the current question
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // State to count the number of questions answered
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
+  // State to check if the quiz is completed
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
 
+  // List of quiz questions
   const questions = [
     { id: 1, question: 'What is 5 + 3?', options: ['5', '8', '10', '15'], correctAnswer: '8' },
     { id: 2, question: 'What is 9 * 6?', options: ['42', '54', '56', '60'], correctAnswer: '54' },
@@ -22,22 +29,28 @@ const QuizScreen = ({ navigation, route }) => {
     { id: 9, question: 'In which year did World War I begin?', options: ['1912', '1914', '1920', '1930'], correctAnswer: '1914' },
   ];
 
+  // Handles the user's answer selection
   const handleAnswer = (selectedOption) => {
     const currentQuestion = questions[currentQuestionIndex];
-    
+
+    // Check if the answer is correct and update the score
     if (selectedOption === currentQuestion.correctAnswer) {
       setScore((prevScore) => prevScore + 1);
     }
 
+    // Update the number of answered questions
     setAnsweredQuestions((prevAnsweredQuestions) => prevAnsweredQuestions + 1);
 
+    // Save the user's selected answer
     setAnswers((prevAnswers) => ({
       ...prevAnswers,
       [currentQuestion.id]: selectedOption,
     }));
 
+    // Show feedback for the selected answer
     setShowFeedback(selectedOption === currentQuestion.correctAnswer ? 'Correct!' : 'Incorrect!');
 
+    // Move to the next question or mark the quiz as completed after a short delay
     setTimeout(() => {
       setShowFeedback('');
       const nextQuestionIndex = currentQuestionIndex + 1;
@@ -49,22 +62,26 @@ const QuizScreen = ({ navigation, route }) => {
     }, 1000);
   };
 
+  // Navigate to the result screen if the quiz is completed
   const handleDone = () => {
     if (isQuizCompleted) {
       navigation.navigate('Result', { score, total: questions.length });
     }
   };
 
+  // Navigate back to the start screen
   const handleBack = () => {
     navigation.navigate('Start');
   };
 
+  // Effect to handle quiz completion
   useEffect(() => {
     if (isQuizCompleted) {
       handleDone();
     }
   }, [isQuizCompleted]);
 
+  // Effect to reset the quiz state when navigating between screens
   useEffect(() => {
     return () => {
       setAnswers({});
@@ -75,21 +92,24 @@ const QuizScreen = ({ navigation, route }) => {
     };
   }, [route]);
 
+  // Get the current question
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <View style={styles.container}>
+      {/* Back button to navigate to the start screen */}
       <TouchableOpacity style={styles.backButton} onPress={handleBack}>
         <MaterialIcons name="close" size={25} color="white" />
       </TouchableOpacity>
       
+      {/* Question and options displayed in a scrollable view */}
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.questionCard}>
           <Text style={styles.question}>{currentQuestion.question}</Text>
           {currentQuestion.options.map((option, index) => (
             <TouchableOpacity
               key={index}
-              style={[styles.option, answers[currentQuestion.id] === option && { backgroundColor: '#1e3b58' }]} // Darker blue for selected
+              style={[styles.option, answers[currentQuestion.id] === option && { backgroundColor: '#1e3b58' }]} // Highlight selected option
               onPress={() => handleAnswer(option)}
             >
               <Text style={styles.optionText}>{option}</Text>
@@ -108,7 +128,6 @@ const styles = StyleSheet.create({
     padding: 18,
     justifyContent: 'center',
     backgroundColor: '#003366', // Dark blue background
-    bottom: 40,
   },
   scrollView: {
     flexGrow: 1,
